@@ -6,7 +6,7 @@ use crate::lib::ic_attributes::{
     get_reserved_cycles_limit, CanisterSettings,
 };
 use crate::lib::identity::wallet::get_or_create_wallet_canister;
-use crate::lib::operations::canister::create_canister;
+use crate::lib::operations::canister::{create_canister, Funding};
 use crate::lib::root_key::fetch_root_key_if_needed;
 use crate::util::clap::parsers::cycle_amount_parser;
 use crate::util::clap::parsers::{
@@ -91,7 +91,7 @@ pub async fn exec(
 
     fetch_root_key_if_needed(env).await?;
 
-    let with_cycles = opts.with_cycles;
+    let funding = Funding::MaybeCycles(opts.with_cycles);
 
     let config_interface = config.get_config();
     let network = env.get_network_descriptor();
@@ -183,7 +183,7 @@ pub async fn exec(
         create_canister(
             env,
             canister_name,
-            with_cycles,
+            &funding,
             opts.specified_id,
             call_sender,
             CanisterSettings {
@@ -251,7 +251,7 @@ pub async fn exec(
                 create_canister(
                     env,
                     canister_name,
-                    with_cycles,
+                    &funding,
                     None,
                     call_sender,
                     CanisterSettings {
