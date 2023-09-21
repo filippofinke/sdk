@@ -3,15 +3,15 @@ use crate::error::config::ConfigError::{
     DetermineConfigDirectoryFailed, DetermineSharedNetworkDirectoryFailed,
     EnsureConfigDirectoryExistsFailed,
 };
-use crate::error::foundation::FoundationError;
-use crate::error::foundation::FoundationError::NoHomeInEnvironment;
+use crate::error::get_project_dirs::GetProjectDirsError;
+use crate::error::get_project_dirs::GetProjectDirsError::NoHomeInEnvironment;
 #[cfg(not(windows))]
 use crate::foundation::get_user_home;
 use crate::fs::composite::ensure_dir_exists;
 use directories_next::ProjectDirs;
 use std::path::PathBuf;
 
-pub fn project_dirs() -> Result<&'static ProjectDirs, FoundationError> {
+pub fn project_dirs() -> Result<&'static ProjectDirs, GetProjectDirsError> {
     lazy_static::lazy_static! {
         static ref DIRS: Option<ProjectDirs> = ProjectDirs::from("org", "dfinity", "dfx");
     }
