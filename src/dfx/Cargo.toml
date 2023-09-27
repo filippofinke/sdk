@@ -1,11 +1,13 @@
 [package]
 name = "dfx"
+description = "Command-line interface for the IC SDK."
 version = "0.14.3"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 build = "assets/build.rs"
 
 [[bin]]

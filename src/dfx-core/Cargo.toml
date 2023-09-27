@@ -1,11 +1,13 @@
 [package]
 name = "dfx-core"
 version = "0.0.1"
+description = "Common functionalities used to build dfx."
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 
 [dependencies]
 aes-gcm.workspace = true
