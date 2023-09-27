@@ -1,6 +1,8 @@
 # dfx changelog
 
-# UNRELEASED
+<!-- next-header -->
+
+## [Unreleased] - ReleaseDate
 
 ### feat: Added support for reserved_cycles and reserved_cycles_limit
 
@@ -3104,3 +3106,6 @@ FLAGS:
 ## Agents
 
 ## Canister Development Kit (CDK)
+
+<!-- next-url -->
+[Unreleased]: https://github.com/dfinity/sdk/compare/0.15.0...HEAD

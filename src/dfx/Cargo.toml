@@ -1,11 +1,13 @@
 [package]
 name = "dfx"
+description = "Command-line interface for the IC SDK."
 version = "0.14.3"
 authors.workspace = true
 edition.workspace = true
 repository.workspace = true
 license.workspace = true
 rust-version.workspace = true
+publish.workspace = true
 build = "assets/build.rs"
 
 [[bin]]
@@ -128,3 +130,13 @@ env_logger = "0.10"
 proptest = "1.0"
 mockito = "0.31.0"
 tempfile = "3.1.0"
+
+[package.metadata.release]
+tag-name = "{{version}}"
+pre-release-replacements = [
+  {file="../../CHANGELOG.md", search="Unreleased", replace="{{version}}"},
+  {file="../../CHANGELOG.md", search="ReleaseDate", replace="{{date}}"},
+  {file="../../CHANGELOG.md", search="\\.\\.\\.HEAD", replace="...{{tag_name}}", exactly=1},
+  {file="../../CHANGELOG.md", search="<!-- next-header -->", replace="<!-- next-header -->\n\n## [Unreleased] - ReleaseDate", exactly=1},
+  {file="../../CHANGELOG.md", search="<!-- next-url -->", replace="<!-- next-url -->\n[Unreleased]: https://github.com/dfinity/sdk/compare/{{tag_name}}...HEAD", exactly=1},
+]
