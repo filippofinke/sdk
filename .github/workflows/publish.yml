@@ -1,4 +1,4 @@
-name: Publish
+name: Publish dfx
 
 # We have to use gtar on macOS because apple's tar is literally broken.
 # Yes, I know how stupid that sounds. But it's true:
@@ -7,8 +7,8 @@ name: Publish
 on:
   push:
     tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
-      - '[0-9]+.[0-9]+.[0-9]+-[A-Za-z]+.[0-9]+'
+      - 'dfx-v[0-9]+.[0-9]+.[0-9]+'
+      - 'dfx-v[0-9]+.[0-9]+.[0-9]+-[A-Za-z]+.[0-9]+'
   pull_request:
 
 concurrency:
