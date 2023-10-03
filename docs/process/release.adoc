@@ -4,52 +4,34 @@ This document describes the release process for `dfx`, with step-by-step instruc
 
 == Overview
 
+Our first step is to ensure the proper and valid state of the `master` branch.
+Next, we update `cargo` and the manifest accordingly.
+We then create and push an annotated tag on the `stable` branch, generate the changelog.
+The product and SDK team members can then inspect, clarify, and develop the changelog to ensure it is appropriate for public consumption.
+After ensuring the proper artifacts are available in Github Releases, we can now publish them by updating the manifest.
+
 Before starting the release process, the team should conduct a brief Go/No-Go release review to evaluate the current state of fixes and features ready to be included in a release candidate.
 After reviewing the list of fixes and features, the team will decide whether to proceed with staging a build.
 
-For now, our release process is driven by the DFINITY foundation SDK team. Future work needs to be done to separate the build and release process to run fully on open systems.
-
 If the new release is given the Go green light, two people who are familiar with the process—a *driver* and a *validator*—use the steps in this document to stage or promote a release candidate.
 
-The *validator* should be the person most familiar with the process and be able to assist with debugging or resolving issues if the *driver* building the release runs into trouble.
-
 A successful release is the result of coordination between automation, manual steps performed by team members, and a validation process.
-Our goal is to update this document with the latest information as we iterate to improve the release process.
 
 === Participants
-- Driver / Primary
-- Validator / Secondary
+- Driver / Primary - the person executing steps listed in this document
+- Validator / Secondary - the person most familiar with the process and be able to assist with debugging or resolving issues if the *driver* building the release runs into trouble.
 
 === Prerequisites
 
-Before you begin, verify the following prerequisites for the release process *driver*:
+For now, our release process is driven by the DFINITY foundation SDK team. Future work needs to be done to separate the build and release process to run fully on open systems.
 
-- You must have a GitHub account and access to the `+dfinity+` organization and core repositories like the `sdk` repository
-+
-For information about setting up a GitHub account, see link:https://docs.github.com/en/github/getting-started-with-github/signing-up-for-a-new-github-account[Signin up for a GitHub account]
-To get permission for your account to access `+dfinity-lab+` and `+dfinity+` repositories, see link:https://www.notion.so/How-to-Get-Github-Access-68c9ad72b5974fa9bbec003592677d02[How to get GitHub access).
-If you run into any issues accessing repositories, you can contact IT using the `#help-it` Slack channel and sending a message to `@firstresponder`.
-
-- You must have VPN access to the DFINITY VPN.
-+
-If you don't have a VPN connection set up for your computer, you'll need to follow the instructions in link:https://www.notion.so/How-to-get-VPN-access-to-our-data-center-services-1c9b123152d740508eec25e7ac982259[How to get VPN access to our data center services].
-
-- You must have link:https://github.com/dfinity-lab/dfinity/blob/master/CONTRIBUTING.adoc#install-and-configure-nix[Nix installed and configured].
-+
-NOTE: If you are installing Nix for the first time, building the cache can take hours and might timeout depending on the reliability of your network connection.
-
-- You must have a registered NPM account and `npm` installed on your system.
-+
-If you don't have an account, you can go to the link:https://www.npmjs.com/[NPMJS] website and click *Sign Up* to create one using your `firstname.lastname@dfinity.org` email address.
-+
-You will need to verify your email address to complete the registration process.
-For your account to be added to the `dfinity` organization, contact IT
+- As a *driver*, you must have a GitHub account and push permission to the `+dfinity/sdk+` repository. If you're DFINITY employee and run into any issues accessing repositories, you can contact IT using the `#help-it` Slack channel.
 
 === Preliminary validation
 
 Verify the general stability of the master branch before attempting to create a release candidate.
 
-. Use this link:https://github.com/dfinity-lab/sdk/commits/master[link]
+. Use this link:https://github.com/dfinity/sdk/commits/master[link]
 to verify:
 .. Is `master` green?
 .. Was `master` red recently or flaky?
@@ -59,7 +41,6 @@ image:is-master-green.png[]
 
 === Preparation
 
-. Connect to VPN.
 . Open a terminal and `cd` into your local copy of the `sdk` repo.
 
 === Creating a New Release Branch
@@ -134,7 +115,6 @@ The manual release process provides full instructions for building and testing t
 
 Verify that you can build DFX from the `+master+` branch without errors.
 
-. Verify you're connected to VPN, if necessary.
 . Build the `dfx` binary by running the following command:
 +
 [source, bash]
@@ -144,8 +124,7 @@ cargo build --release --locked
 export dfx_rc="$(pwd)/target/release/dfx"
 ----
 +
-The `nix-build` command can take a while to complete.
-Wait for it to be done.
+Wait for the `cargo build` to complete (it can take a while).
 These commands create the binary then stores the binary in a shell variable.
 . Make sure the `$dfx_rc` variable points to a real file by running the following command:
 +
@@ -420,19 +399,16 @@ git push origin <YOUR_NAME>/update-n.n.n-latest
 ----
 . After pushing, click the link in the console to go to your new branch in GitHub, then click *Create Pull Request*.
 . Have the validator review and approve the PR, then merge to `master`.
-. Verify the Linux and Darwin (macOS) builds are available for download from \https://download.dfinity.systems/sdk/dfx/n.n.n/architecture/dfx-n.n.n.tar.gz.
+. Verify the Linux and Darwin (macOS) builds are available for download from \https://github.com/dfinity/sdk/releases/download/n.n.n/dfx-n.n.n-architecture-os.tar.gz.
 +
-Linux—Replace _n.n.n_ with the new version number and _architecture_ with `x86_64-linux`. For example, the following link would download version 0.6.1 for Linux:
+Linux—Replace _n.n.n_ with the new version number and _architecture-os_ with `x86_64-linux`. For example, the following link would download version 0.6.1 for Linux:
 +
-\https://download.dfinity.systems/sdk/dfx/0.6.1/x86_64-linux/dfx-0.6.1.tar.gz[]
+\https://github.com/dfinity/sdk/releases/download/0.15.0/dfx-0.15.0-x86_64-linux.tar.gz[]
 +
-Darwin (macOS)—Replace _n.n.n_  with the new version number and _architecture_ with `x86_64-darwin`. For example, the following link would download version 0.6.1 for macOS:
+Darwin (macOS)—Replace _n.n.n_  with the new version number and _architecture-os_ with `x86_64-darwin`. For example, the following link would download version 0.6.1 for macOS:
 +
-\https://download.dfinity.systems/sdk/dfx/0.6.1/x86_64-darwin/dfx-0.6.1.tar.gz[]
+\https://github.com/dfinity/sdk/releases/download/0.15.0/dfx-0.15.0-x86_64-darwin.tar.gz[]
 +
-CI Hydra:
-+
-link:https://hydra.dfinity.systems/jobset/dfinity-ci-build/sdk-release[]
 
 Add a description and publish the tag for the latest release
 https://github.com/dfinity-lab/sdk/releases/new?tag=${NEW_DFX_VERSION}
@@ -456,11 +432,7 @@ link:https://github.com/dfinity/docs[Documentation repo]
 
 == Build mechanism
 
-Our build process is described in the `release.nix` derivation.
-The `release.nix` derivation mainly invokes the `dfx-release` derivation passing the annotated tag on HEAD (which happens right now to be the stable branch).
-The `dfx-release` derivation builds the release binaries and files for each platform and generates a manifest for S3 that includes the tag name.
-The release tag allows us to keep a directory structure with all past and upcoming releases in S3.
-
+Github CI g
 ==  CI
 
 CI release-related operation is split into two jobsets:
@@ -482,20 +454,5 @@ The installer is generated when a patch is applied on the `master` branch by the
 
 ==  Changelog
 
-A candidate changelog is generated automatically using the respective tool (under scripts directory).
+A candidate changelog is generated automatically using the respective tool (under scripts directory). 
 Currently, the release notes are updated manually in github.
-
-== Publishing of artifacts
-
-We now summarize the release process.
-Our first step is to ensure the proper and valid state of the `master` branch.
-Next, we update `cargo` and the manifest accordingly.
-We then create and push an annotated tag on the `stable` branch, generate the changelog.
-The product and SDK team members can then inspect, clarify, and develop the changelog to ensure it is appropriate for public
-consumption.
-After ensuring the proper artifacts are available in S3, we can now publish them by updating the manifest.
-
-== TODOs and improvements
-. version from the tag
-. release stress tests
-. valid json test for the manifest
