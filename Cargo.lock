@@ -1381,6 +1381,7 @@ dependencies = [
  "patch",
  "pem 1.1.1",
  "petgraph",
+ "phantom_newtype 0.2.0",
  "proptest",
  "rand",
  "regex",
@@ -2466,7 +2467,7 @@ dependencies = [
  "crc32fast",
  "ic-crypto-sha",
  "ic-protobuf",
- "phantom_newtype",
+ "phantom_newtype 0.8.0",
  "prost",
  "serde",
  "strum 0.23.0",
@@ -2674,7 +2675,7 @@ dependencies = [
  "base64 0.11.0",
  "hex",
  "ic-protobuf",
- "phantom_newtype",
+ "phantom_newtype 0.8.0",
  "serde",
  "serde_cbor",
  "strum 0.23.0",
@@ -2844,7 +2845,7 @@ dependencies = [
  "lazy_static",
  "libc",
  "nix 0.23.2",
- "phantom_newtype",
+ "phantom_newtype 0.8.0",
  "wsl",
 ]
 
@@ -2890,7 +2891,7 @@ dependencies = [
  "maplit",
  "num-traits",
  "once_cell",
- "phantom_newtype",
+ "phantom_newtype 0.8.0",
  "prost",
  "serde",
  "serde_bytes",
@@ -4138,6 +4139,12 @@ dependencies = [
  "fixedbitset",
  "indexmap 1.9.3",
 ]
+
+[[package]]
+name = "phantom_newtype"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a4e36614e15df8570f9eefecc326fe379c2551366cb20a43105639596e474506"
 
 [[package]]
 name = "phantom_newtype"

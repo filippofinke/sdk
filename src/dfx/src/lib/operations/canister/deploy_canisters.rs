@@ -1,8 +1,11 @@
 use crate::lib::builders::BuildConfig;
 use crate::lib::canister_info::assets::AssetsCanisterInfo;
 use crate::lib::canister_info::CanisterInfo;
+use crate::lib::diagnosis::DiagnosedError;
 use crate::lib::environment::Environment;
-use crate::lib::error::DfxResult;
+use crate::lib::error::create_canister::CreateCanisterError;
+use crate::lib::error::create_with_ledger::CreateWithLedgerError;
+use crate::lib::error::{DfxError, DfxResult};
 use crate::lib::ic_attributes::CanisterSettings;
 use crate::lib::identity::wallet::get_or_create_wallet_canister;
 use crate::lib::installers::assets::prepare_assets_for_proposal;
@@ -15,6 +18,7 @@ use crate::lib::operations::canister::deploy_canisters::DeployMode::{
 };
 use crate::lib::operations::canister::motoko_playground::reserve_canister_with_playground;
 use crate::lib::operations::canister::{create_canister, install_canister::install_canister};
+use crate::lib::subnet::SubnetId;
 use crate::util::{blob_from_arguments, get_candid_init_type};
 use anyhow::{anyhow, bail, Context};
 use candid::Principal;
@@ -64,6 +68,7 @@ pub async fn deploy_canisters(
     upgrade_unchanged: bool,
     funding: &Funding,
     specified_id: Option<Principal>,
+    specified_subnet_id: Option<SubnetId>,
     call_sender: &CallSender,
     no_wallet: bool,
     skip_consent: bool,
@@ -147,6 +152,7 @@ pub async fn deploy_canisters(
             &initial_canister_id_store,
             funding,
             specified_id,
+            specified_subnet_id,
             create_call_sender,
             &config,
         )
@@ -217,6 +223,7 @@ async fn register_canisters(
     canister_id_store: &CanisterIdStore,
     funding: &Funding,
     specified_id: Option<Principal>,
+    specified_subnet_id: Option<SubnetId>,
     call_sender: &CallSender,
     config: &Config,
 ) -> DfxResult {
@@ -268,7 +275,7 @@ async fn register_canisters(
                         .expect("Reserved cycles limit must be between 0 and 2^128-1, inclusively.")
                 });
             let controllers = None;
-            create_canister(
+            let result = create_canister(
                 env,
                 canister_name,
                 funding,
@@ -282,9 +289,25 @@ async fn register_canisters(
                     reserved_cycles_limit,
                 },
             )
-            .await?;
+            .await;
+            diagnose_ledger_failures(&result)?;
+            result?;
         }
     }
+    Ok(())
+}
+
+fn diagnose_ledger_failures(result: &Result<(), CreateCanisterError>) -> DfxResult {
+    if let Err(CreateCanisterError::CreateWithLedgerError(
+        CreateWithLedgerError::LedgerTransferError(e),
+    )) = result
+    {
+        return Err(DiagnosedError::new(
+            format!("Failed to notify cmc: {}", e),
+            format!("Re-run the command with --icp-block-height {}", 4),
+        ))
+        .context("oh no");
+    };
     Ok(())
 }
 

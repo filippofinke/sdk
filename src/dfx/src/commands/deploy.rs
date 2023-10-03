@@ -10,6 +10,7 @@ use crate::lib::operations::canister::DeployMode::{
 };
 use crate::lib::operations::canister::{deploy_canisters, Funding, ICPFunding};
 use crate::lib::root_key::fetch_root_key_if_needed;
+use crate::lib::subnet::{get_subnet_for_canister, SubnetId};
 use crate::lib::{environment::Environment, named_canister};
 use crate::util::clap::parsers::cycle_amount_parser;
 use anyhow::{anyhow, bail, Context};
@@ -68,6 +69,11 @@ pub struct DeployOpts {
     /// This amount is deducted from the wallet's cycle balance.
     #[arg(long, value_parser = cycle_amount_parser, conflicts_with("using_icp_group"))]
     with_cycles: Option<u128>,
+
+    /// Create canisters on the same subnet as this canister.
+    /// If none specified, creates canisters on a random subnet.
+    #[arg(long)]
+    next_to: Option<String>,
 
     /// Attempts to create the canister with this Canister ID.
     ///
@@ -222,23 +228,42 @@ pub fn exec(env: &dyn Environment, opts: DeployOpts) -> DfxResult {
     let call_sender = CallSender::from(&opts.wallet)
         .map_err(|e| anyhow!("Failed to determine call sender: {}", e))?;
 
-    runtime.block_on(fetch_root_key_if_needed(&env))?;
+    runtime.block_on(async {
+        fetch_root_key_if_needed(&env).await?;
 
-    runtime.block_on(deploy_canisters(
-        &env,
-        canister_name,
-        argument,
-        argument_type,
-        &deploy_mode,
-        opts.upgrade_unchanged,
-        &funding,
-        opts.specified_id,
-        &call_sender,
-        no_wallet,
-        opts.yes,
-        env_file,
-        opts.no_asset_upgrade,
-    ))?;
+        let specified_subnet_id: Option<SubnetId> = {
+            let next_to = opts
+                .next_to
+                .map(|next_to| {
+                    Principal::from_text(&next_to)
+                        .or_else(|_| env.get_canister_id_store()?.get(&next_to))
+                })
+                .transpose()?;
+
+            match next_to {
+                None => None,
+                Some(next_to) => Some(get_subnet_for_canister(env.get_agent(), next_to).await?),
+            }
+        };
+
+        deploy_canisters(
+            &env,
+            canister_name,
+            argument,
+            argument_type,
+            &deploy_mode,
+            opts.upgrade_unchanged,
+            &funding,
+            opts.specified_id,
+            specified_subnet_id,
+            &call_sender,
+            opts.no_wallet,
+            opts.yes,
+            env_file,
+            opts.no_asset_upgrade,
+        )
+        .await
+    })?;
 
     if matches!(deploy_mode, NormalDeploy | ForceReinstallSingleCanister(_)) {
         display_urls(&env)?;
