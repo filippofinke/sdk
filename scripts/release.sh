@@ -211,10 +211,8 @@ tag_release_commit() {
 {
     get_parameters "$@"
     pre_release_check
-    build_release_candidate
     validate_default_project
-    build_release_branch
-    tag_release_commit
+    cargo release -p dfx $NEW_DFX_VERSION --execute
 
     echo "All done!"
     exit
