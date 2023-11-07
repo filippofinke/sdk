@@ -4,6 +4,15 @@ This document describes the release process for `dfx`, with step-by-step instruc
 
 == Overview
 
+The end goal is to create:
+- git tag, tagging a commit upon which the binaries are built
+- GitHub Release attached to that git tag
+- upload x86 Linux and x86 MacOS binaries to that GitHub Release
+- CHANGELOG.md updates:
+  - copy relevant section from CHANGELOG.md to GitHub Release notes
+  - update headers: replace old `# Unreleased` header, with `# <release dfx version>`
+-
+
 Our first step is to ensure the proper and valid state of the `master` branch.
 Next, we update `cargo` and the manifest accordingly.
 We then create and push an annotated tag on the `stable` branch, generate the changelog.
@@ -23,7 +32,7 @@ A successful release is the result of coordination between automation, manual st
 
 === Prerequisites
 
-For now, our release process is driven by the DFINITY foundation SDK team. Future work needs to be done to separate the build and release process to run fully on open systems.
+Release process is driven by the DFINITY foundation SDK team. Future work needs to be done to separate the build and release process to run fully on open systems.
 
 - As a *driver*, you must have a GitHub account and push permission to the `+dfinity/sdk+` repository. If you're DFINITY employee and run into any issues accessing repositories, you can contact IT using the `#help-it` Slack channel.
 

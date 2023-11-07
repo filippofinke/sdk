@@ -1,0 +1,489 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?asciidoc-toc?>
+<?asciidoc-numbered?>
+<article xmlns="http://docbook.org/ns/docbook" xmlns:xl="http://www.w3.org/1999/xlink" version="5.0" xml:lang="en">
+<info>
+<title>Release process</title>
+<date>2023-10-09</date>
+</info>
+<simpara>This document describes the release process for <literal>dfx</literal>, with step-by-step instructions, information about automation, and a checklist.</simpara>
+<section xml:id="_overview">
+<title>Overview</title>
+<simpara>Our first step is to ensure the proper and valid state of the <literal>master</literal> branch.
+Next, we update <literal>cargo</literal> and the manifest accordingly.
+We then create and push an annotated tag on the <literal>stable</literal> branch, generate the changelog.
+The product and SDK team members can then inspect, clarify, and develop the changelog to ensure it is appropriate for public consumption.
+After ensuring the proper artifacts are available in Github Releases, we can now publish them by updating the manifest.</simpara>
+<simpara>Before starting the release process, the team should conduct a brief Go/No-Go release review to evaluate the current state of fixes and features ready to be included in a release candidate.
+After reviewing the list of fixes and features, the team will decide whether to proceed with staging a build.</simpara>
+<simpara>If the new release is given the Go green light, two people who are familiar with the process—a <emphasis role="strong">driver</emphasis> and a <emphasis role="strong">validator</emphasis>—use the steps in this document to stage or promote a release candidate.</simpara>
+<simpara>A successful release is the result of coordination between automation, manual steps performed by team members, and a validation process.</simpara>
+<section xml:id="_participants">
+<title>Participants</title>
+<itemizedlist>
+<listitem>
+<simpara>Driver / Primary - the person executing steps listed in this document</simpara>
+</listitem>
+<listitem>
+<simpara>Validator / Secondary - the person most familiar with the process and be able to assist with debugging or resolving issues if the <emphasis role="strong">driver</emphasis> building the release runs into trouble.</simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section xml:id="_prerequisites">
+<title>Prerequisites</title>
+<simpara>For now, our release process is driven by the DFINITY foundation SDK team. Future work needs to be done to separate the build and release process to run fully on open systems.</simpara>
+<itemizedlist>
+<listitem>
+<simpara>As a <emphasis role="strong">driver</emphasis>, you must have a GitHub account and push permission to the <literal>dfinity/sdk</literal> repository. If you&#8217;re DFINITY employee and run into any issues accessing repositories, you can contact IT using the <literal>#help-it</literal> Slack channel.</simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section xml:id="_preliminary_validation">
+<title>Preliminary validation</title>
+<simpara>Verify the general stability of the master branch before attempting to create a release candidate.</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Use this <link xl:href="https://github.com/dfinity/sdk/commits/master">link</link>
+to verify:</simpara>
+<orderedlist numeration="loweralpha">
+<listitem>
+<simpara>Is <literal>master</literal> green?</simpara>
+</listitem>
+<listitem>
+<simpara>Was <literal>master</literal> red recently or flaky?</simpara>
+<simpara><inlinemediaobject>
+<imageobject>
+<imagedata fileref="is-master-green.png"/>
+</imageobject>
+<textobject><phrase>is master green</phrase></textobject>
+</inlinemediaobject></simpara>
+</listitem>
+</orderedlist>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_preparation">
+<title>Preparation</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Open a terminal and <literal>cd</literal> into your local copy of the <literal>sdk</literal> repo.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_creating_a_new_release_branch">
+<title>Creating a New Release Branch</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Check out the <literal>master</literal> branch and pull merged commits from the remote in your working directory by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git checkout master &amp;&amp; git pull</programlisting>
+</listitem>
+<listitem>
+<simpara>Create the release branch.  Note that the branch name never includes alpha, beta, and so forth. All of these will be released on the same release branch.</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git switch -c release-&lt;n.n.n&gt; &amp;&amp; git push</programlisting>
+<simpara>For example, if creating the release branch for 0.7.0, you would run the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git switch -c release-0.7.0 &amp;&amp; git push</programlisting>
+</listitem>
+<listitem>
+<simpara>Edit CHANGELOG.md to remove the "UNRELEASED" note from the version to be released.  Commit this to change to the release branch.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_resuming_on_an_existing_release_branch">
+<title>Resuming on an Existing Release Branch</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Check out the <literal>master</literal> branch and pull merged commits from the remote in your working directory by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git checkout release-&lt;n.n.n&gt; &amp;&amp; git pull</programlisting>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_ready">
+<title>Ready</title>
+<simpara>At this point, you are ready to build a release candidate.
+There are two ways you can build a release candidate:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Using the <link linkend="script">SCRIPT-BASED release process</link> to automate the build process and skip manual testing.</simpara>
+</listitem>
+<listitem>
+<simpara>Using the <link linkend="manual">MANUAL STEPS release process</link> to build and test the release.</simpara>
+</listitem>
+</itemizedlist>
+</section>
+</section>
+<section xml:id="script">
+<title>SCRIPT-BASED release process</title>
+<simpara>To use the release script to automate building the release candidate:</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Run the following command and substitute <literal>&lt;n.n.n&gt;</literal> with the version number for this release candidate:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">./scripts/release.sh &lt;n.n.n&gt;</programlisting>
+<simpara>For example, if releasing 0.7.0, you would run the following command:</simpara>
+<literallayout class="monospaced">./scripts/release.sh 0.7.0</literallayout>
+</listitem>
+<listitem>
+<simpara>Follow the prompts displayed to complete the release process.</simpara>
+</listitem>
+</orderedlist>
+<simpara>After running this command to build the release candidate, follow the steps in <link linkend="post-build">Notification and post-build validations</link> to complete the release process.</simpara>
+</section>
+<section xml:id="manual">
+<title>MANUAL STEPS release process</title>
+<simpara>The manual release process provides full instructions for building and testing the release candidate binaries to ensure everything is working before making a release available to internal or external developers.</simpara>
+<section xml:id="_build_dfx">
+<title>Build DFX</title>
+<simpara>Verify that you can build DFX from the <literal>master</literal> branch without errors.</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Build the <literal>dfx</literal> binary by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">cargo clean --release
+cargo build --release --locked
+export dfx_rc="$(pwd)/target/release/dfx"</programlisting>
+<simpara>Wait for the <literal>cargo build</literal> to complete (it can take a while).
+These commands create the binary then stores the binary in a shell variable.</simpara>
+</listitem>
+<listitem>
+<simpara>Make sure the <literal>$dfx_rc</literal> variable points to a real file by running the following command:</simpara>
+<screen linenumbering="unnumbered">test -x $dfx_rc \
+    &amp;&amp; echo 'Please proceed.' \
+    || echo 'Cant find executable $dfx_rc'="$dfx_rc"</screen>
+<simpara>You should see 'Please proceed' returned.</simpara>
+</listitem>
+<listitem>
+<simpara>Delete the existing <literal>dfx</literal> cache to ensure you&#8217;re not using a stale binary.</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc cache delete</programlisting>
+</listitem>
+<listitem>
+<simpara>Ensure <literal>dfx</literal> and <literal>replica</literal> are not running in the background by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">ps -ef | grep -E 'replica|dfx' | grep -v grep</programlisting>
+<simpara>If there are any <literal>replica</literal> or <literal>dfx</literal> processes running, use the <literal>kill</literal> command to terminate them.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_validate_the_default_project">
+<title>Validate the default project</title>
+<simpara>Verify that you can build, deploy, and call the default <literal>hello_world</literal> project without errors.</simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Generate a default new project and change to the project directory by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc new hello_world
+cd hello_world</programlisting>
+</listitem>
+<listitem>
+<simpara>Start the local <literal>replica</literal> as a background process by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc start --clean --background</programlisting>
+</listitem>
+<listitem>
+<simpara>Create, build, and install canisters by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc deploy</programlisting>
+</listitem>
+<listitem>
+<simpara>Call the canister and verify the result by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc canister call hello_world greet everyone</programlisting>
+</listitem>
+<listitem>
+<simpara>Save the canister URLs as shell variables, then print them by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">export hello_world_backend_candid_url="http://localhost:4943/candid?canisterId=$($dfx_rc canister id hello_world_backend)"
+export hello_world_frontend_url="http://localhost:4943/?canisterId=$($dfx_rc canister id hello_world_frontend)"</programlisting>
+</listitem>
+<listitem>
+<simpara>Open a web browser and clear your cache or switch to Private Browsing/Incognito mode.</simpara>
+</listitem>
+<listitem>
+<simpara>Open the following URL in your web browser:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">echo "$hello_world_frontend_url"</programlisting>
+</listitem>
+<listitem>
+<simpara>Verify that you are prompted to type a greeting in a prompt window.</simpara>
+<orderedlist numeration="loweralpha">
+<listitem>
+<simpara>Type a greeting, then click <emphasis role="strong">OK</emphasis> to return the greeting in an alert window.</simpara>
+</listitem>
+<listitem>
+<simpara>Verify there are no errors in the console by opening the Developer Tools.</simpara>
+<simpara>For example, in the browser, right-click, then click Inspect and select Console to check for errors and warnings.
+Warnings can be ignored.</simpara>
+</listitem>
+</orderedlist>
+</listitem>
+<listitem>
+<simpara>Verify the Candid UI by opening the following URL in your web browser:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">echo "$hello_world_backend_candid_url"</programlisting>
+<orderedlist numeration="loweralpha">
+<listitem>
+<simpara>Verify UI loads, then test the greet function by entering text and clicking <emphasis role="strong">Call</emphasis> or clicking <emphasis role="strong">Lucky</emphasis>,</simpara>
+</listitem>
+<listitem>
+<simpara>Verify there are no errors in the console by opening the Developer Tools.</simpara>
+<simpara>For example, in the browser, right-click, then click Inspect and select Console to check for errors and warnings.
+Warnings can be ignored.</simpara>
+</listitem>
+</orderedlist>
+</listitem>
+<listitem>
+<simpara>Stop the replica by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">$dfx_rc stop</programlisting>
+</listitem>
+<listitem>
+<simpara>Delete the test project by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">cd ..
+rm -rf hello_world</programlisting>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_whitelist_asset_canister_in_motoko_playground">
+<title>Whitelist asset canister in Motoko Playground</title>
+<simpara>If the release includes a new version of the asset canister, then the Motoko Playground needs to have the new asset canister WASM whitelisted.
+Otherwise <literal>dfx deploy --playground</literal> will not work for asset canisters.</simpara>
+<simpara>Find the new asset canister module hash. It will be listed in <literal>CHANGELOG.md</literal> under <literal>&lt;n.n.n&gt;</literal> - <literal>Dependencies</literal> - <literal>Frontend canister</literal>.</simpara>
+<simpara>Head over to the <link xl:href="https://github.com/dfinity/motoko-playground">Motoko Playground repo</link> and create a PR that adds the asset canister module hash to the whitelist in <literal>service/wasm-utils/lib.rs</literal>.
+You can use <link xl:href="https://github.com/dfinity/motoko-playground/pull/175/files#diff-c8a035da9dcede5539deb0e81164ea50730e3177f56aef747d157406b1ba648dR15-R17">this change</link> as an example.</simpara>
+<section xml:id="_update_the_version">
+<title>Update the version</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Set the new version in a temporary environment variable.</simpara>
+<simpara>For example, replace <literal>&lt;n.n.n&gt;</literal> with a specific version number:</simpara>
+<programlisting language="nix-shell" linenumbering="unnumbered">export NEW_DFX_VERSION=&lt;n.n.n&gt;</programlisting>
+</listitem>
+<listitem>
+<simpara>If you&#8217;re not already there, navigate back to the top-level of the <literal>sdk</literal> repo.</simpara>
+</listitem>
+<listitem>
+<simpara>Enter the sdk <literal>nix</literal> development environment by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">nix-shell --option extra-binary-caches https://cache.dfinity.systems</programlisting>
+</listitem>
+<listitem>
+<simpara>Create a new branch for your changes by running the following command:</simpara>
+<programlisting language="nix-shell" linenumbering="unnumbered">git switch -c $USER/release-$NEW_DFX_VERSION</programlisting>
+</listitem>
+<listitem>
+<simpara>Update the first <literal>version</literal> field in <literal>src/dfx/Cargo.toml</literal> to be equal to <literal>$NEW_DFX_VERSION</literal></simpara>
+</listitem>
+<listitem>
+<simpara>Apply these changes to <literal>Cargo.lock</literal> by running the following command:</simpara>
+<programlisting language="nix-shell" linenumbering="unnumbered">cargo build</programlisting>
+</listitem>
+<listitem>
+<simpara>Append the new version to <literal>public/manifest.json</literal> by appending it to the <literal>versions</literal> list.</simpara>
+<simpara>For example:</simpara>
+<programlisting language="json" linenumbering="unnumbered">{
+    "tags": {
+        "latest": "0.6.0"
+    },
+    "versions": [
+        "0.5.15",
+        "0.6.0",
+        "n.n.n"
+    ]
+}</programlisting>
+<simpara><emphasis role="strong">Ensure</emphasis> <literal>tags.latest</literal> remains the same.</simpara>
+</listitem>
+<listitem>
+<simpara>Exit <literal>nix-shell</literal> to continue.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_create_a_pull_request_and_tag">
+<title>Create a pull request and tag</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Create a pull request with the above changes by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git add --all
+git commit --signoff --message "chore: Release $NEW_DFX_VERSION"
+git push origin $USER/release-$NEW_DFX_VERSION</programlisting>
+</listitem>
+<listitem>
+<simpara>After pushing, click the link in the console to go to your new branch in GitHub, then click <emphasis role="strong">Create Pull Request</emphasis>.  Change the base branch to <literal>release-&lt;n.n.n&gt;</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Have the validator review and approve the PR.</simpara>
+</listitem>
+<listitem>
+<simpara>Merge the PR manually (the automerge-squash label only works for PRs to the master branch).</simpara>
+<note>
+<simpara>Depending on the number of jobs queued up, this step can take 45 to 60 minutes to complete.</simpara>
+</note>
+</listitem>
+<listitem>
+<simpara>Switch to the release branch by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git switch release-$NEW_DFX_VERSION</programlisting>
+</listitem>
+<listitem>
+<simpara>Set the upstream tracking information for the release branch:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git branch --set-upstream-to=origin/$NEW_DFX_VERSION $NEW_DFX_VERSION</programlisting>
+</listitem>
+<listitem>
+<simpara>Update the release branch:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git pull</programlisting>
+</listitem>
+<listitem>
+<simpara>Create a new tag by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git tag --annotate $NEW_DFX_VERSION --message "Release: $NEW_DFX_VERSION"</programlisting>
+</listitem>
+<listitem>
+<simpara>Verify the tag points to the correct version and includes annotation by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git log
+git describe --always</programlisting>
+</listitem>
+<listitem>
+<simpara>Push the tag by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git push origin $NEW_DFX_VERSION</programlisting>
+<simpara>The <link xl:href="../../.github/workflows/publish.yml">publish.yml GitHub workflow</link> will build the release
+and upload to GitHub releases after you push the tag.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_add_new_frontend_canister_hash_to_list_of_whitelisted_wasms_in_dfinitymotoko_playground_repo">
+<title>Add new frontend canister hash to list of WHITELISTED_WASMS in dfinity/motoko-playground repo</title>
+<simpara>You can do it either by using GitHub UI (<link xl:href="https://github.com/dfinity/sdk/actions/workflows/broadcast-frontend-hash.yml">https://github.com/dfinity/sdk/actions/workflows/broadcast-frontend-hash.yml</link>) or by running the following command:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">gh workflow run "broadcast-frontend-hash.yml" -f dfx_version=&lt;n.n.n&gt;</programlisting>
+</section>
+</section>
+</section>
+<section xml:id="post-build">
+<title>Notification and post-build validation</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Wait for the publish workflow to complete.</simpara>
+</listitem>
+<listitem>
+<simpara>Install the build using the <literal>DFX_VERSION=&lt;version&gt;</literal> environment variable.</simpara>
+</listitem>
+<listitem>
+<simpara>Run through the <link xl:href="https://sdk.dfinity.org/docs/quickstart/local-quickstart.html"><emphasis>Quick start - Local development</emphasis></link> steps.</simpara>
+</listitem>
+<listitem>
+<simpara>Run through <link xl:href="https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#ping-the-network">Check the connection to the network</link> and <link xl:href="https://sdk.dfinity.org/docs/quickstart/network-quickstart.html#net-deploy">Register, build, and deploy the application</link> steps to deploy to the network.</simpara>
+</listitem>
+<listitem>
+<simpara>Notify <link xl:href="https://app.slack.com/client/T43F9UHS5/CGA566TPV">#eng-sdk</link> team members that the new build is ready for manual installation and testing.</simpara>
+<simpara>Remind the SDK and Apps teams to add information about <emphasis>features and fixes</emphasis> for release notes to their issues or PRs and to apply the changelog label to have the information included in the release notes.</simpara>
+</listitem>
+<listitem>
+<simpara>Notify the <link xl:href="https://forum.dfinity.org">Developer Forum</link> community if there are breaking changes.</simpara>
+<simpara>If a release is known to have changes that are not backward-compatible, create a forum post to describe the change and any instructions for migrating to the new release.</simpara>
+<simpara>Depending on the change, the notification might need to be posted in more than one topic channel.
+For example, changes to the external network for onboarded developers are currently posted in <link xl:href="https://forum.dfinity.org/t/network-status-updates/928">Network status and updates</link> on the <link xl:href="https://forum.dfinity.org">DFINITY Developer Forum</link>.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_promote_a_release_candidate_to_production">
+<title>Promote a release candidate to production</title>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Verify that release notes and documentation are ready for public consumption.</simpara>
+</listitem>
+<listitem>
+<simpara>Open the <literal>public/manifest.json</literal> file in a text editor.</simpara>
+</listitem>
+<listitem>
+<simpara>Verify that <literal>dfx deploy --playground</literal> works with an asset canister by e.g. deploying the default project created by <literal>dfx new</literal>.</simpara>
+<orderedlist numeration="loweralpha">
+<listitem>
+<simpara>If it doesn&#8217;t work, make sure the PR created on the Motoko Playground repo is merged and deployed.</simpara>
+</listitem>
+</orderedlist>
+</listitem>
+<listitem>
+<simpara>Under the <literal>tags</literal> key, change the version number associated with the <literal>latest</literal> key.</simpara>
+<simpara>For example:</simpara>
+<programlisting language="json" linenumbering="unnumbered">{
+    "tags": {
+        "latest": "n.n.n"
+    }
+}</programlisting>
+</listitem>
+<listitem>
+<simpara>Prepare a PR for the manifest by running the following commands:</simpara>
+<programlisting language="bash" linenumbering="unnumbered">git switch -c &lt;YOUR_NAME&gt;/update-n.n.n-latest
+git add --all
+git commit --message "chore: Update the manifest latest to n.n.n "
+git push origin &lt;YOUR_NAME&gt;/update-n.n.n-latest</programlisting>
+</listitem>
+<listitem>
+<simpara>After pushing, click the link in the console to go to your new branch in GitHub, then click <emphasis role="strong">Create Pull Request</emphasis>.</simpara>
+</listitem>
+<listitem>
+<simpara>Have the validator review and approve the PR, then merge to <literal>master</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Verify the Linux and Darwin (macOS) builds are available for download from https://github.com/dfinity/sdk/releases/download/n.n.n/dfx-n.n.n-architecture-os.tar.gz.</simpara>
+<simpara>Linux—Replace <emphasis>n.n.n</emphasis> with the new version number and <emphasis>architecture-os</emphasis> with <literal>x86_64-linux</literal>. For example, the following link would download version 0.6.1 for Linux:</simpara>
+<simpara>https://github.com/dfinity/sdk/releases/download/0.15.0/dfx-0.15.0-x86_64-linux.tar.gz[]</simpara>
+<simpara>Darwin (macOS)—Replace <emphasis>n.n.n</emphasis>  with the new version number and <emphasis>architecture-os</emphasis> with <literal>x86_64-darwin</literal>. For example, the following link would download version 0.6.1 for macOS:</simpara>
+<simpara>https://github.com/dfinity/sdk/releases/download/0.15.0/dfx-0.15.0-x86_64-darwin.tar.gz[]</simpara>
+<simpara>Add a description and publish the tag for the latest release
+<link xl:href="https://github.com/dfinity-lab/sdk/releases/new?tag=${NEW_DFX_VERSION}">https://github.com/dfinity-lab/sdk/releases/new?tag=${NEW_DFX_VERSION}</link></simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_release_documentation">
+<title>Release documentation</title>
+<simpara><link xl:href="https://github.com/dfinity/docs">Documentation repo</link></simpara>
+<orderedlist numeration="arabic">
+<listitem>
+<simpara>Tag the documentation using <literal>git tag -a &lt;version&gt; -m &lt;documentation-archive-message&gt;</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Publish the tag on the remote server using <literal>git push origin &lt;tagname&gt;</literal>.</simpara>
+</listitem>
+<listitem>
+<simpara>Deploy updated documentation using Netlify.</simpara>
+</listitem>
+</orderedlist>
+</section>
+<section xml:id="_requirements_and_properties">
+<title>Requirements and properties</title>
+<itemizedlist>
+<listitem>
+<simpara>Semi-automation</simpara>
+</listitem>
+<listitem>
+<simpara>Consistent delivery</simpara>
+</listitem>
+<listitem>
+<simpara>Validation</simpara>
+</listitem>
+<listitem>
+<simpara>Rollback</simpara>
+</listitem>
+<listitem>
+<simpara>Guardrails</simpara>
+</listitem>
+<listitem>
+<simpara>Flexibility</simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section xml:id="_build_mechanism">
+<title>Build mechanism</title>
+<simpara>Github CI g
+==  CI</simpara>
+<simpara>CI release-related operation is split into two jobsets:</simpara>
+<itemizedlist>
+<listitem>
+<simpara>Generation and publishing of 'install.sh' and 'manifest.json'.</simpara>
+</listitem>
+<listitem>
+<simpara>Tagging of a commit to release, building and publishing the necessary executables and files for supported platforms.</simpara>
+</listitem>
+</itemizedlist>
+</section>
+<section xml:id="_manifest">
+<title>Manifest</title>
+<simpara>We utilize a manifest to indicate to users (and in particular to our installer and dfx executable) available and supported versions for download.
+The manifest allows us to rollback a release or remove a release from the list of supported releases.
+See <link xl:href="../specification/version_management.xml">Version Management</link> for details on the format of the manifest.</simpara>
+<simpara>The manifest is generated when a patch is applied on master by the CI.</simpara>
+</section>
+<section xml:id="_installer">
+<title>Installer</title>
+<simpara>The installer is generated when a patch is applied on the <literal>master</literal> branch by the CI.</simpara>
+</section>
+<section xml:id="_changelog">
+<title>Changelog</title>
+<simpara>A candidate changelog is generated automatically using the respective tool (under scripts directory).
+Currently, the release notes are updated manually in github.</simpara>
+</section>
+</article>
