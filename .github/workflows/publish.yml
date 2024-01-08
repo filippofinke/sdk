@@ -6,6 +6,8 @@ name: Publish
 
 on:
   push:
+    branches:
+      - ens/windows-build
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-[A-Za-z]+.[0-9]+'
@@ -40,6 +42,11 @@ jobs:
             target: x86_64-unknown-linux-gnu
             binary_path: target/x86_64-unknown-linux-gnu/release
             name: x86_64-linux
+            tar: tar
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            binary_path: target/x86_64-pc-windows-msvc/release
+            name: x86_64-windows
             tar: tar
     steps:
       - uses: actions/checkout@v3
