@@ -6,8 +6,6 @@ name: Publish
 
 on:
   push:
-    branches:
-      - ens/windows-build
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
       - '[0-9]+.[0-9]+.[0-9]+-[A-Za-z]+.[0-9]+'
@@ -114,8 +112,8 @@ jobs:
         if: github.ref_type == 'tag'
         run: |
           ${{ matrix.tar }} -zcC ${{ matrix.binary_path }} -f ${{ env.TARBALL_FILENAME }} dfx
-          shasum -a 256 ${{ env.TARBALL_FILENAME }} > $SHA256_FILENAME
-          shasum -c $SHA256_FILENAME
+          # shasum -a 256 ${{ env.TARBALL_FILENAME }} > $SHA256_FILENAME
+          # shasum -c $SHA256_FILENAME
 
       - name: Upload Artifacts
         if: github.ref_type == 'tag'
@@ -124,7 +122,6 @@ jobs:
           name: dfx-artifacts-${{ hashFiles('rust-toolchain.toml') }}-${{ matrix.name }}
           path: |
             ${{ env.TARBALL_FILENAME }}
-            ${{ env.SHA256_FILENAME }}
 
   aggregate:
     name: publishable:required
@@ -143,7 +140,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [ 'x86_64-darwin', 'x86_64-linux' ]
+        name: [ 'x86_64-darwin', 'x86_64-linux', 'x86_64-windows' ]
     steps:
       - uses: actions/checkout@v3
 
