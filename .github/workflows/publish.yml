@@ -60,11 +60,10 @@ jobs:
           echo "DFX_VERSION=$GITHUB_REF_NAME" >> $GITHUB_ENV
           echo "TARBALL_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz" >> $GITHUB_ENV
           echo "SHA256_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz.sha256" >> $GITHUB_ENV
-          set
 
       - name: Show environment
         run: |
-          set
+          dir env:
 
       - name: Cache Cargo
         uses: actions/cache@v3
@@ -116,7 +115,7 @@ jobs:
       - name: Create tarball of binaries and sha256 of tarball
         if: github.ref_type == 'tag'
         run: |
-          set
+          dir env:
           ${{ matrix.tar }} -zcC ${{ matrix.binary_path }} -f ${{ env.TARBALL_FILENAME }} dfx
           # shasum -a 256 ${{ env.TARBALL_FILENAME }} > $SHA256_FILENAME
           # shasum -c $SHA256_FILENAME
