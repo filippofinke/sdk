@@ -56,14 +56,14 @@ jobs:
       # GITHUB_REF_NAME will be something link 2353/merge for branch builds, which isn't great as a dfx version
       - name: Set dfx version (tag builds only)
         if: github.ref_type == 'tag'
+        shell: bash
         run: |
           echo "DFX_VERSION=$GITHUB_REF_NAME" >> $GITHUB_ENV
           echo "TARBALL_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz" >> $GITHUB_ENV
           echo "SHA256_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz.sha256" >> $GITHUB_ENV
-          echo "TARBALL_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz" >> $env:GITHUB_ENV
-          echo "SHA256_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz.sha256" >> $env:GITHUB_ENV
 
       - name: Show environment
+        if: ${{ matrix.os == "windows-2022" }}
         run: |
           dir env:
 
