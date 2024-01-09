@@ -65,7 +65,7 @@ jobs:
           echo "SHA256_FILENAME=dfx-$GITHUB_REF_NAME-${{ matrix.name }}.tar.gz.sha256" >> $GITHUB_ENV
 
       - name: Show environment
-        if: matrix.os == "windows-2022"
+        if: matrix.os == 'windows-2022'
         run: |
           dir env:
 
