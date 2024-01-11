@@ -147,6 +147,8 @@ dfx_start() {
     else
         dfx start --background --artificial-delay 100 "$@" 3>&-
     fi
+    # shellcheck disable=SC2181
+    [[ $? -eq 0 ]] || (echo "dfx start failed" && exit 1)
 
     dfx_config_root="$E2E_NETWORK_DATA_DIRECTORY/replica-configuration"
     printf "Configuration Root for DFX: %s\n" "${dfx_config_root}"
