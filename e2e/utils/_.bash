@@ -161,9 +161,9 @@ dfx_start() {
     printf "Replica Configured Port: %s\n" "${port}"
     printf "Webserver Configured Port: %s\n" "${webserver_port}"
 
-    timeout 5 sh -c \
-        "until nc -z localhost ${port}; do echo waiting for replica; sleep 1; done" \
-        || (echo "could not connect to replica on port ${port}" && exit 1)
+#    timeout 5 sh -c \
+#        "until nc -z localhost ${port}; do echo waiting for replica; sleep 1; done" \
+#        || (echo "could not connect to replica on port ${port}" && exit 1)
 }
 
 # Tries to start dfx on the default port, repeating until it succeeds or times out.

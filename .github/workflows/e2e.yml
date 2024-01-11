@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+      - ens/wait-healthy-discovery
   pull_request:
 
 concurrency:
