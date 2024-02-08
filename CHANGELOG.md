@@ -59,6 +59,7 @@ The dfxvm install script now accepts `DFXVM_INIT_YES=<non empty string>` to skip
 
 ### chore: bump `ic-agent`, `ic-utils` and `ic-identity-hsm` to 0.32.0
 
+### fix: removed a reference to `<canister name>_CANISTER_ID` constant in the generated language bindings
 
 # 0.16.1
 
